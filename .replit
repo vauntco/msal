@@ -1,0 +1,56 @@
+run = "python3 main.py"
+entrypoint = "index.html"
+modules = ["web", "nodejs-20", "python-3.12", "postgresql-16"]
+
+[[ports]]
+localPort = 5000
+externalPort = 5000
+
+[[ports]]
+localPort = 8000
+externalPort = 80
+
+[nix]
+channel = "stable-25_05"
+packages = ["freetype", "lcms2", "libimagequant", "libjpeg", "libtiff", "libwebp", "libxcrypt", "openjpeg", "tcl", "tk", "zlib"]
+
+[workflows]
+runButton = "Project"
+
+[[workflows.workflow]]
+name = "Project"
+mode = "parallel"
+author = "agent"
+
+[[workflows.workflow.tasks]]
+task = "workflow.run"
+args = "Start application"
+
+[[workflows.workflow]]
+name = "Start application"
+author = "agent"
+
+[workflows.workflow.metadata]
+outputType = "webview"
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "python3 main.py"
+waitForPort = 5000
+
+[postMerge]
+path = "scripts/post-merge.sh"
+timeoutMs = 120000
+
+[deployment]
+deploymentTarget = "autoscale"
+run = ["gunicorn", "--bind=0.0.0.0:8000", "--timeout=120", "--workers=2", "main:app"]
+
+[userenv]
+
+[userenv.shared]
+GHL_LOCATION_ID = "XaYEM5WGXt0VYVclE4AZ"
+CG_FTP_HOST = "ftp.cargurus.com"
+CG_FTP_PORT = "2122"
+CG_FTP_USER = "vaunt"
+TZ = "America/New_York"
